@@ -10,6 +10,34 @@
     <link rel="apple-touch-icon" href="images/apple-touch-icon.png">
     <script src="web/scripts/network.js" defer></script>
 
+    <style>
+        .target-network-selector {
+            padding: 10px;
+            margin-bottom: 8px;
+            border: 1px solid #555;
+            border-radius: 6px;
+            font-size: 14px;
+            line-height: 1.8;
+        }
+        .target-network-selector select,
+        .target-network-selector input[type="text"] {
+            font-size: 14px;
+            padding: 4px;
+            margin: 2px 0;
+            max-width: 100%;
+        }
+        .target-network-selector button {
+            font-size: 14px;
+            padding: 4px 10px;
+            margin-right: 6px;
+            cursor: pointer;
+        }
+        #target-network-status {
+            margin-top: 6px;
+            font-style: italic;
+            opacity: 0.85;
+        }
+    </style>
 </head>
 <body>
     <div class="toolbar" id="mainToolbar">
@@ -47,6 +75,22 @@
 
     </div>
     <div class="network-container">
+        <div id="target-network-selector" class="target-network-selector">
+            <div><strong>Target network for scans &amp; tests</strong></div>
+            <div>
+                <label for="target-network-select">Detected networks:</label>
+                <select id="target-network-select"></select>
+            </div>
+            <div>
+                <label for="target-network-manual">Or enter a subnet:</label>
+                <input type="text" id="target-network-manual" placeholder="e.g. 192.168.50.0/24" />
+            </div>
+            <div>
+                <button type="button" onclick="applyTargetNetwork()">Apply</button>
+                <button type="button" onclick="refreshTargetNetworks()">Rescan interfaces</button>
+            </div>
+            <div id="target-network-status"></div>
+        </div>
         <div id="network-table" class="scrollable-table">
             <!-- The table will be inserted here by JavaScript -->
         </div>

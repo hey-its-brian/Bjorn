@@ -412,6 +412,77 @@ class WebUtils:
             handler.send_response(404)
             handler.end_headers()
 
+    def discover_networks(self):
+        """
+        Enumerate the IPv4 networks this device is attached to, one entry per
+        interface that currently has an address. These are the networks Bjorn can
+        realistically be pointed at. Loopback is skipped. Returns a list of dicts
+        with keys: interface, ip, netmask, subnet (as a CIDR string).
+        """
+        import ipaddress
+        try:
+            import netifaces
+        except Exception as e:
+            self.logger.error(f"netifaces unavailable for network discovery: {e}")
+            return []
+        networks = []
+        seen = set()
+        for iface in netifaces.interfaces():
+            try:
+                addrs = netifaces.ifaddresses(iface).get(netifaces.AF_INET, [])
+            except Exception:
+                continue
+            for addr in addrs:
+                ip = addr.get('addr')
+                netmask = addr.get('netmask')
+                if not ip or not netmask or ip.startswith('127.'):
+                    continue
+                try:
+                    cidr = sum(bin(int(x)).count('1') for x in netmask.split('.'))
+                    subnet = str(ipaddress.IPv4Network(f"{ip}/{cidr}", strict=False))
+                except Exception:
+                    continue
+                if subnet in seen:
+                    continue
+                seen.add(subnet)
+                networks.append({
+                    "interface": iface,
+                    "ip": ip,
+                    "netmask": netmask,
+                    "subnet": subnet,
+                })
+        return networks
+
+    def _auto_detected_subnet(self):
+        """Return the subnet auto-detection would choose (default gateway), or ''."""
+        try:
+            import ipaddress, netifaces
+            gws = netifaces.gateways()
+            default_gateway = gws['default'][netifaces.AF_INET][1]
+            iface = netifaces.ifaddresses(default_gateway)[netifaces.AF_INET][0]
+            cidr = sum(bin(int(x)).count('1') for x in iface['netmask'].split('.'))
+            return str(ipaddress.IPv4Network(f"{iface['addr']}/{cidr}", strict=False))
+        except Exception:
+            return ""
+
+    def list_networks(self, handler):
+        """Serve discovered networks plus the currently selected scan target."""
+        try:
+            networks = self.discover_networks()
+            current = (getattr(self.shared_data, 'scan_target_subnet', '') or '').strip()
+            auto = self._auto_detected_subnet()
+            payload = {"networks": networks, "current": current, "auto": auto}
+            handler.send_response(200)
+            handler.send_header("Content-type", "application/json")
+            handler.end_headers()
+            handler.wfile.write(json.dumps(payload).encode('utf-8'))
+        except Exception as e:
+            self.logger.error(f"Error listing networks: {e}")
+            handler.send_response(500)
+            handler.send_header("Content-type", "application/json")
+            handler.end_headers()
+            handler.wfile.write(json.dumps({"error": str(e)}).encode('utf-8'))
+
     def scan_wifi(self, handler):
         try:
             result = subprocess.Popen(['sudo', 'iwlist', 'wlan0', 'scan'], stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)

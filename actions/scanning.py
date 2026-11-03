@@ -248,8 +248,25 @@ class NetworkScanner:
 
     def get_network(self):
         """
-        Retrieves the network information including the default gateway and subnet.
+        Retrieves the network to scan.
+
+        If a target subnet is configured (shared_config.json -> "scan_target_subnet",
+        or picked on the Network page of the web UI), that subnet is scanned instead
+        of the one auto-detected from the default gateway. An empty value or "auto"
+        keeps the original auto-detection behaviour. This is what lets a single Bjorn
+        unit be aimed at any of several personal networks it can reach, rather than
+        being tied to the one network behind its default gateway.
         """
+        configured = (getattr(self.shared_data, 'scan_target_subnet', '') or '').strip()
+        if configured and configured.lower() != 'auto':
+            try:
+                network = ipaddress.IPv4Network(configured, strict=False)
+                self.logger.info(f"Using configured target network: {network}")
+                return network
+            except Exception as e:
+                self.logger.error(
+                    f"Invalid scan_target_subnet '{configured}' ({e}); "
+                    f"falling back to auto-detection.")
         try:
             gws = netifaces.gateways()
             default_gateway = gws['default'][netifaces.AF_INET][1]

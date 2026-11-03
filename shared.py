@@ -153,6 +153,7 @@ class SharedData:
             "steal_file_extensions": [".bjorn",".hack",".flag"],
             
             "__title_network__": "Network",
+            "scan_target_subnet": "",
             "nmap_scan_aggressivity": "-T2",
             "portstart": 1,
             "portend": 2,
