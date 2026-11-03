@@ -90,6 +90,8 @@ class CustomHandler(http.server.SimpleHTTPRequestHandler):
             self.web_utils.scan_wifi(self)
         elif self.path == '/network_data':
             self.web_utils.serve_network_data(self)
+        elif self.path == '/list_networks':
+            self.web_utils.list_networks(self)
         elif self.path == '/netkb_data':
             self.web_utils.serve_netkb_data(self)
         elif self.path == '/netkb_data_json':

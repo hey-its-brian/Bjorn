@@ -37,6 +37,7 @@ The e-Paper HAT display and web interface make it easy to monitor and interact w
 ## 🌟 Features
 
 - **Network Scanning**: Identifies live hosts and open ports on the network.
+- **Target Network Selection**: Pick which of your reachable networks Bjorn scans and tests, from the Network page or `shared_config.json`, instead of being tied to one network.
 - **Vulnerability Assessment**: Performs vulnerability scans using Nmap and other tools.
 - **System Attacks**: Conducts brute-force attacks on various services (FTP, SSH, SMB, RDP, Telnet, SQL).
 - **File Stealing**: Extracts data from vulnerable services.
@@ -143,6 +144,27 @@ No constant monitoring needed - just deploy and let Bjorn do what it does best: 
 Bjorn is designed to be a community-driven weapon forge. Create and share your own attack modules!
 
 ⚠️ **For educational and authorized testing purposes only** ⚠️
+
+## 🎯 Choosing the target network
+
+By default Bjorn scans the single subnet behind its default gateway, which ties a unit to one network. If you run several personal networks at home, you can tell Bjorn which one to aim at.
+
+Open the web UI and go to the **Network** page. At the top you will see **Target network for scans & tests** with:
+
+- A **Detected networks** dropdown, listing every IPv4 subnet the device is currently attached to (one per interface), plus an **Auto-detect** option that keeps the original behaviour.
+- A free-text **subnet** box for a reachable subnet that is not on a local interface, entered in CIDR form, for example `192.168.50.0/24`.
+
+Pick an option (or type a subnet), click **Apply**, and the choice is saved to `scan_target_subnet` in `shared_config.json`. It takes effect on the next scan cycle. Click **Rescan interfaces** after moving the unit or changing its connections to refresh the list.
+
+You can also set it directly in `config/shared_config.json`:
+
+```json
+"scan_target_subnet": "192.168.50.0/24"
+```
+
+Leave it as `""` (or `"auto"`) to auto-detect the default-gateway subnet as before. An invalid value is logged and Bjorn falls back to auto-detection rather than failing.
+
+> Only point Bjorn at networks you own or are explicitly authorised to test. It brute-forces services and exfiltrates files from hosts it finds, so running it against a network changes nothing about that responsibility.
 
 ## 🤝 Contributing
 
