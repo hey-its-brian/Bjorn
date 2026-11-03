@@ -21,6 +21,10 @@ VERBOSE=false
 # Global variables
 BJORN_USER="bjorn"
 BJORN_PATH="/home/${BJORN_USER}/Bjorn"
+# Source repository to install from. Point this at your own fork to
+# install your version; the upstream default is infinition/Bjorn.
+BJORN_REPO="https://github.com/hey-its-brian/Bjorn.git"
+BJORN_BRANCH="main"
 CURRENT_STEP=0
 TOTAL_STEPS=8
 
@@ -301,8 +305,9 @@ setup_bjorn() {
         echo -e "${GREEN}Using existing BJORN directory${NC}"
     else
         # No existing directory, proceed with clone
-        log "INFO" "Cloning BJORN repository"
-        git clone https://github.com/infinition/Bjorn.git
+        log "INFO" "Cloning BJORN repository from ${BJORN_REPO} (branch ${BJORN_BRANCH})"
+        echo -e "${BLUE}Cloning ${BJORN_REPO} (branch ${BJORN_BRANCH})${NC}"
+        git clone -b "${BJORN_BRANCH}" "${BJORN_REPO}"
         check_success "Cloned BJORN repository"
     fi
 
